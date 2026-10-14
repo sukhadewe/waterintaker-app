@@ -125,7 +125,7 @@ class SettingsScreen extends StatelessWidget {
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BeveragesScreen())),
               ),
               SettingTile(
-                leading: SizedBox(width: 26, height: 26, child: MascotThumb(characterId: s.character, size: 26)),
+                leading: FriendBadge(friend: characterById(s.character), size: 30),
                 title: tr('character'),
                 value: characterById(s.character).name,
                 onTap: () => showCharacterSheet(context),
@@ -177,7 +177,7 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Center(
-                child: Text('Waddle • ${tr('version')} $kAppVersion',
+                child: Text('Jal Mitra • ${tr('version')} $kAppVersion',
                     style: const TextStyle(color: C.inkSoft, fontSize: 12)),
               ),
             ],
@@ -213,51 +213,78 @@ class SettingsScreen extends StatelessWidget {
 Future<void> showCharacterSheet(BuildContext context) {
   return showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder: (ctx) => ListenableBuilder(
       listenable: AppState.instance,
       builder: (ctx, _) {
         final s = AppState.instance;
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          child: SizedBox(
+            height: MediaQuery.of(ctx).size.height * 0.75,
+            child: Column(children: [
               Text(tr('character'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(tr('friends_sub'),
+                    textAlign: TextAlign.center, style: const TextStyle(color: C.inkSoft)),
+              ),
               const SizedBox(height: 12),
-              Wrap(spacing: 12, runSpacing: 12, alignment: WrapAlignment.center, children: [
-                for (final c in kCharacters)
-                  GestureDetector(
-                    onTap: () {
-                      if (c.premium && !s.premium) {
-                        Navigator.pop(ctx);
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (_) => const PaywallScreen(), fullscreenDialog: true));
-                        return;
-                      }
-                      s.update((st) => st.character = c.id);
-                    },
-                    child: Container(
-                      width: 100,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: s.character == c.id ? C.accentSoft : C.card,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: s.character == c.id ? C.accent : Colors.transparent, width: 2),
-                      ),
-                      child: Column(children: [
-                        MascotThumb(characterId: c.id, size: 80),
-                        const SizedBox(height: 4),
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          if (c.premium && !s.premium)
-                            const Padding(
-                              padding: EdgeInsets.only(right: 3),
-                              child: Icon(Icons.lock_rounded, size: 13, color: C.inkSoft),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 3,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.78,
+                  children: [
+                    for (final c in kCharacters)
+                      Builder(builder: (_) {
+                        final open = friendUnlocked(c);
+                        final sel = s.character == c.id;
+                        return GestureDetector(
+                          onTap: () {
+                            if (open) {
+                              s.update((st) => st.character = c.id);
+                            } else if (c.premium) {
+                              Navigator.pop(ctx);
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (_) => const PaywallScreen(), fullscreenDialog: true));
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: sel ? C.accentSoft : C.card,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: sel ? C.accent : Colors.transparent, width: 2),
                             ),
-                          Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                        ]),
-                      ]),
-                    ),
-                  ),
-              ]),
+                            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                              FriendBadge(friend: c, size: 58, locked: !open),
+                              const SizedBox(height: 6),
+                              Text(c.name,
+                                  maxLines: 2,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                              if (!open)
+                                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                  const Icon(Icons.lock_rounded, size: 12, color: C.inkSoft),
+                                  const SizedBox(width: 2),
+                                  Flexible(
+                                    child: Text(
+                                      c.premium ? tr('premium') : tr('unlock_days', {'n': '${c.unlockStreak}'}),
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 10.5, color: C.inkSoft),
+                                    ),
+                                  ),
+                                ]),
+                            ]),
+                          ),
+                        );
+                      }),
+                  ],
+                ),
+              ),
             ]),
           ),
         );

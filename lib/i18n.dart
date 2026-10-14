@@ -10,7 +10,7 @@ const kLanguages = {
 };
 
 const Map<String, Map<String, String>> _s = {
-  'app_name': {'en': 'Waddle', 'hi': 'Waddle', 'mr': 'Waddle'},
+  'app_name': {'en': 'Jal Mitra', 'hi': 'जल मित्र', 'mr': 'जल मित्र'},
   'tagline': {'en': 'Track your intake', 'hi': 'पानी पीना ट्रैक करें', 'mr': 'पाणी पिणे ट्रॅक करा'},
   'get_started': {'en': 'GET STARTED', 'hi': 'शुरू करें', 'mr': 'सुरू करा'},
   'continue': {'en': 'Continue', 'hi': 'आगे बढ़ें', 'mr': 'पुढे चला'},
@@ -23,7 +23,7 @@ const Map<String, Map<String, String>> _s = {
   'ml_units': {'en': 'ml (milliliters)', 'hi': 'ml (मिलीलीटर)', 'mr': 'ml (मिलीलिटर)'},
   'oz_units': {'en': 'oz (ounces)', 'hi': 'oz (औंस)', 'mr': 'oz (औंस)'},
   'first_sip': {'en': 'Add your first sip', 'hi': 'अपना पहला घूँट जोड़ें', 'mr': 'तुमचा पहिला घोट जोडा'},
-  'first_sip_hint': {'en': 'Tap the glass to fill your penguin', 'hi': 'पेंगुइन भरने के लिए गिलास दबाएँ', 'mr': 'पेंग्विन भरण्यासाठी ग्लास दाबा'},
+  'first_sip_hint': {'en': 'Tap the glass to fill your matka', 'hi': 'मटका भरने के लिए गिलास दबाएँ', 'mr': 'माठ भरण्यासाठी ग्लास दाबा'},
   'add_water': {'en': '+ WATER', 'hi': '+ पानी', 'mr': '+ पाणी'},
   'smart_reminders': {'en': 'Smart Reminders', 'hi': 'स्मार्ट रिमाइंडर', 'mr': 'स्मार्ट रिमाइंडर'},
   'smart_reminders_sub': {'en': 'Gentle nudges only when you forget to drink water', 'hi': 'जब आप पानी पीना भूलें, तभी हल्की याद', 'mr': 'तुम्ही पाणी प्यायला विसरलात तरच हलकी आठवण'},
@@ -107,7 +107,9 @@ const Map<String, Map<String, String>> _s = {
   'hours': {'en': '{n} h', 'hi': '{n} घंटे', 'mr': '{n} तास'},
   'smart_skip': {'en': 'Stop reminding after goal is reached', 'hi': 'लक्ष्य पूरा होने पर याद दिलाना बंद', 'mr': 'लक्ष्य पूर्ण झाल्यावर आठवण बंद'},
   'units': {'en': 'Measurement Units', 'hi': 'माप की इकाई', 'mr': 'मापाचे एकक'},
-  'character': {'en': 'Character', 'hi': 'कैरेक्टर', 'mr': 'कॅरेक्टर'},
+  'character': {'en': 'Your buddy', 'hi': 'आपका दोस्त', 'mr': 'तुमचा मित्र'},
+  'friends_sub': {'en': 'Keep your streak to unlock more animal friends', 'hi': 'रोज़ लक्ष्य पूरा करें, नए जानवर दोस्त खुलेंगे', 'mr': 'रोज लक्ष्य पूर्ण करा, नवे प्राणी मित्र उघडतील'},
+  'unlock_days': {'en': '{n}-day streak', 'hi': '{n} दिन लगातार', 'mr': '{n} दिवस सलग'},
   'sounds': {'en': 'Sounds & vibration', 'hi': 'आवाज़ और वाइब्रेशन', 'mr': 'आवाज आणि कंपन'},
   'premium': {'en': 'Premium', 'hi': 'प्रीमियम', 'mr': 'प्रीमियम'},
   'premium_active': {'en': 'Premium active ✓', 'hi': 'प्रीमियम चालू ✓', 'mr': 'प्रीमियम सुरू ✓'},
@@ -118,7 +120,7 @@ const Map<String, Map<String, String>> _s = {
   'restore': {'en': 'Restore Purchases', 'hi': 'खरीदारी वापस लाएँ', 'mr': 'खरेदी परत आणा'},
   'become_hero': {'en': 'Become a hydration hero!', 'hi': 'बनिए हाइड्रेशन हीरो!', 'mr': 'व्हा हायड्रेशन हिरो!'},
   'pw_1': {'en': 'No ads, ever', 'hi': 'कोई विज्ञापन नहीं', 'mr': 'एकही जाहिरात नाही'},
-  'pw_2': {'en': 'All cute characters unlocked', 'hi': 'सभी प्यारे कैरेक्टर खुल जाएँगे', 'mr': 'सर्व गोड कॅरेक्टर अनलॉक'},
+  'pw_2': {'en': 'All 15 animal friends unlocked', 'hi': 'सभी 15 जानवर दोस्त खुल जाएँगे', 'mr': 'सर्व 15 प्राणी मित्र अनलॉक'},
   'pw_3': {'en': 'Unlimited quick-drink buttons', 'hi': 'होम पर जितने चाहें उतने पेय बटन', 'mr': 'होमवर हवी तितकी पेय बटणे'},
   'pw_4': {'en': 'Support an indie maker', 'hi': 'एक भारतीय डेवलपर का साथ दें', 'mr': 'एका भारतीय डेव्हलपरला साथ द्या'},
   'lifetime': {'en': 'Lifetime, pay once', 'hi': 'लाइफ़टाइम, एक बार भुगतान', 'mr': 'लाइफटाइम, एकदाच पैसे'},
@@ -126,9 +128,9 @@ const Map<String, Map<String, String>> _s = {
   'store_unavailable': {'en': 'Store not available right now. Try again later.', 'hi': 'अभी स्टोर उपलब्ध नहीं। बाद में कोशिश करें।', 'mr': 'आत्ता स्टोअर उपलब्ध नाही. नंतर प्रयत्न करा.'},
   'locked_premium': {'en': 'Unlock with Premium', 'hi': 'प्रीमियम से खोलें', 'mr': 'प्रीमियमने उघडा'},
   'quick_limit': {'en': 'Free version shows up to 6 drinks on home. Get Premium for more.', 'hi': 'फ्री वर्ज़न में होम पर 6 पेय। ज़्यादा के लिए प्रीमियम लें।', 'mr': 'फ्री आवृत्तीत होमवर 6 पेये. जास्तसाठी प्रीमियम घ्या.'},
-  'remaining_tip': {'en': 'Tap the character to see how much is left', 'hi': 'कितना बाकी है देखने के लिए कैरेक्टर दबाएँ', 'mr': 'किती बाकी आहे पाहण्यासाठी कॅरेक्टर दाबा'},
+  'remaining_tip': {'en': 'Tap the matka to see how much is left', 'hi': 'कितना बाकी है देखने के लिए कैरेक्टर दबाएँ', 'mr': 'किती बाकी आहे पाहण्यासाठी कॅरेक्टर दाबा'},
   'notif_title': {'en': 'Time for a sip 💧', 'hi': 'एक घूँट का समय 💧', 'mr': 'एक घोट घ्यायची वेळ 💧'},
-  'n1': {'en': 'Your penguin is thirsty! Grab a glass of water.', 'hi': 'आपका पेंगुइन प्यासा है! एक गिलास पानी पी लीजिए।', 'mr': 'तुमचा पेंग्विन तहानलेला आहे! एक ग्लास पाणी प्या.'},
+  'n1': {'en': 'Your matka is getting empty! Your friends are thirsty.', 'hi': 'आपका मटका खाली हो रहा है! दोस्त प्यासे हैं।', 'mr': 'तुमचा माठ रिकामा होतोय! मित्र तहानलेले आहेत.'},
   'n2': {'en': 'Water reduces stress. Take a sip now.', 'hi': 'पानी तनाव कम करता है। अभी एक घूँट लें।', 'mr': 'पाणी ताण कमी करते. आत्ता एक घोट घ्या.'},
   'n3': {'en': 'Feeling tired? You might just need water.', 'hi': 'थकान लग रही है? शायद पानी की ज़रूरत है।', 'mr': 'थकवा वाटतोय? कदाचित पाण्याची गरज आहे.'},
   'n4': {'en': 'A glass now keeps the headache away.', 'hi': 'अभी एक गिलास, सिरदर्द दूर।', 'mr': 'आत्ता एक ग्लास, डोकेदुखी दूर.'},
@@ -146,7 +148,7 @@ const Map<String, Map<String, String>> _s = {
   'monday': {'en': 'Monday', 'hi': 'सोमवार', 'mr': 'सोमवार'},
   'sunday': {'en': 'Sunday', 'hi': 'रविवार', 'mr': 'रविवार'},
   'get_premium': {'en': 'Get Premium', 'hi': 'प्रीमियम लें', 'mr': 'प्रीमियम घ्या'},
-  'remove_ads': {'en': 'Remove ads & unlock all characters', 'hi': 'विज्ञापन हटाएँ और सभी कैरेक्टर पाएँ', 'mr': 'जाहिराती काढा आणि सर्व कॅरेक्टर मिळवा'},
+  'remove_ads': {'en': 'Remove ads & unlock all friends', 'hi': 'विज्ञापन हटाएँ और सभी दोस्त पाएँ', 'mr': 'जाहिराती काढा आणि सर्व मित्र मिळवा'},
   'manage_drinks': {'en': 'Add / Edit Beverages', 'hi': 'पेय जोड़ें / बदलें', 'mr': 'पेये जोडा / बदला'},
 };
 

@@ -34,7 +34,7 @@ class WaddleApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: AppState.instance,
       builder: (context, _) => MaterialApp(
-        title: 'Waddle',
+        title: 'Jal Mitra',
         debugShowCheckedModeBanner: false,
         navigatorKey: AppNavigator.key,
         theme: buildTheme(),

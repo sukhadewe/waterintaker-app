@@ -2,221 +2,189 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../app_state.dart';
 import '../theme.dart';
 
-/// One coloured band of the character's fill (a beverage share of the goal).
+/// One coloured band of the matka's water (a beverage share of the goal).
 class FillLayer {
   final Color color;
   final double fraction; // fraction of goal (0..1)
   const FillLayer(this.color, this.fraction);
 }
 
-class CharacterDef {
+/// An animal friend who visits the matka.
+class Friend {
   final String id;
-  final String name;
+  final String emoji;
+  final String en;
+  final String hi;
+  final String mr;
   final bool premium;
-  final Path Function() silhouette; // in a 200 x 240 box
-  final void Function(Canvas c, double level) features;
-  const CharacterDef(this.id, this.name, this.premium, this.silhouette, this.features);
-}
+  final int unlockStreak; // free friends unlock after this many streak days
+  const Friend(this.id, this.emoji, this.en, this.hi, this.mr, {this.premium = false, this.unlockStreak = 0});
 
-const _ink = C.ink;
-const _blush = Color(0x55FF7A9A);
-
-Path _oval(double l, double t, double r, double b) => Path()..addOval(Rect.fromLTRB(l, t, r, b));
-
-Path _rotOval(double cx, double cy, double w, double h, double angle) {
-  final m = Matrix4.identity()
-    ..translateByDouble(cx, cy, 0, 1)
-    ..rotateZ(angle)
-    ..translateByDouble(-cx, -cy, 0, 1);
-  return _oval(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2).transform(m.storage);
-}
-
-Path _union(List<Path> parts) {
-  var p = parts.first;
-  for (final q in parts.skip(1)) {
-    p = Path.combine(PathOperation.union, p, q);
+  String get name {
+    final l = AppState.instance.lang;
+    return l == 'hi' ? hi : (l == 'mr' ? mr : en);
   }
-  return p;
 }
 
-/// 0 = eyes open, 1 = fully closed. Set by the painter before drawing features.
-double _blink = 0;
-
-void _eye(Canvas c, double x, double y, double r) {
-  if (_blink > 0.5) {
-    _smile(c, Offset(x - r, y), Offset(x, y + r * 0.7), Offset(x + r, y), w: r * 0.45);
-    return;
-  }
-  c.drawCircle(Offset(x, y), r, Paint()..color = _ink);
-  c.drawCircle(Offset(x + r * 0.35, y - r * 0.35), r * 0.38, Paint()..color = Colors.white);
-}
-
-void _smile(Canvas c, Offset a, Offset ctrl, Offset b, {double w = 3}) {
-  c.drawPath(
-    Path()
-      ..moveTo(a.dx, a.dy)
-      ..quadraticBezierTo(ctrl.dx, ctrl.dy, b.dx, b.dy),
-    Paint()
-      ..color = _ink
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = w,
-  );
-}
-
-// ---------------- Penguin (free) ----------------
-Path _penguin() => _union([
-      _oval(50, 22, 150, 122),
-      _oval(32, 72, 168, 228),
-      _rotOval(36, 146, 26, 74, 0.38),
-      _rotOval(164, 146, 26, 74, -0.38),
-      _oval(60, 214, 98, 238),
-      _oval(102, 214, 140, 238),
-    ]);
-
-void _penguinFx(Canvas c, double level) {
-  // belly sheen
-  c.drawOval(const Rect.fromLTRB(60, 104, 140, 218), Paint()..color = Colors.white.withValues(alpha: 0.38));
-  _eye(c, 82, 68, 7.5);
-  _eye(c, 118, 68, 7.5);
-  c.drawOval(const Rect.fromLTRB(62, 84, 78, 94), Paint()..color = _blush);
-  c.drawOval(const Rect.fromLTRB(122, 84, 138, 94), Paint()..color = _blush);
-  final beak = Path()
-    ..moveTo(90, 82)
-    ..quadraticBezierTo(100, 78, 110, 82)
-    ..quadraticBezierTo(104, 96, 100, 97)
-    ..quadraticBezierTo(96, 96, 90, 82)
-    ..close();
-  c.drawPath(beak, Paint()..color = C.coral);
-  // feet tint
-  c.drawOval(const Rect.fromLTRB(64, 222, 94, 236), Paint()..color = C.coral.withValues(alpha: 0.85));
-  c.drawOval(const Rect.fromLTRB(106, 222, 136, 236), Paint()..color = C.coral.withValues(alpha: 0.85));
-}
-
-// ---------------- Whale ----------------
-Path _whale() => _union([
-      _oval(16, 96, 188, 222),
-      _rotOval(24, 120, 22, 60, -0.5),
-      _rotOval(10, 92, 46, 20, -0.55),
-      _rotOval(42, 84, 46, 20, 0.55),
-      _oval(124, 54, 138, 70),
-      _oval(110, 40, 122, 52),
-      _oval(140, 38, 152, 50),
-      _rotOval(120, 206, 44, 22, 0.4),
-    ]);
-
-void _whaleFx(Canvas c, double level) {
-  c.drawOval(const Rect.fromLTRB(48, 172, 176, 220), Paint()..color = Colors.white.withValues(alpha: 0.38));
-  _eye(c, 150, 140, 7);
-  c.drawOval(const Rect.fromLTRB(150, 152, 168, 162), Paint()..color = _blush);
-  _smile(c, const Offset(140, 168), const Offset(160, 182), const Offset(178, 162));
-}
-
-// ---------------- Cat ----------------
-Path _cat() => _union([
-      _oval(48, 30, 152, 130),
-      Path()
-        ..moveTo(52, 62)
-        ..lineTo(60, 10)
-        ..lineTo(98, 40)
-        ..close(),
-      Path()
-        ..moveTo(148, 62)
-        ..lineTo(140, 10)
-        ..lineTo(102, 40)
-        ..close(),
-      _oval(44, 108, 156, 228),
-      _rotOval(166, 178, 22, 80, 0.45),
-      _oval(60, 214, 96, 238),
-      _oval(104, 214, 140, 238),
-    ]);
-
-void _catFx(Canvas c, double level) {
-  c.drawOval(const Rect.fromLTRB(70, 132, 130, 218), Paint()..color = Colors.white.withValues(alpha: 0.35));
-  _eye(c, 80, 78, 7.5);
-  _eye(c, 120, 78, 7.5);
-  c.drawOval(const Rect.fromLTRB(62, 94, 78, 104), Paint()..color = _blush);
-  c.drawOval(const Rect.fromLTRB(122, 94, 138, 104), Paint()..color = _blush);
-  c.drawPath(
-    Path()
-      ..moveTo(95, 92)
-      ..lineTo(105, 92)
-      ..lineTo(100, 98)
-      ..close(),
-    Paint()..color = C.coral,
-  );
-  _smile(c, const Offset(92, 102), const Offset(96, 108), const Offset(100, 102), w: 2.4);
-  _smile(c, const Offset(100, 102), const Offset(104, 108), const Offset(108, 102), w: 2.4);
-  final wh = Paint()
-    ..color = _ink.withValues(alpha: 0.5)
-    ..strokeWidth = 1.6
-    ..strokeCap = StrokeCap.round;
-  c.drawLine(const Offset(56, 96), const Offset(34, 92), wh);
-  c.drawLine(const Offset(56, 102), const Offset(34, 104), wh);
-  c.drawLine(const Offset(144, 96), const Offset(166, 92), wh);
-  c.drawLine(const Offset(144, 102), const Offset(166, 104), wh);
-}
-
-// ---------------- Bunny ----------------
-Path _bunny() => _union([
-      _rotOval(80, 40, 28, 78, -0.12),
-      _rotOval(120, 40, 28, 78, 0.12),
-      _oval(54, 46, 146, 138),
-      _oval(42, 112, 158, 230),
-      _oval(58, 216, 96, 238),
-      _oval(104, 216, 142, 238),
-    ]);
-
-void _bunnyFx(Canvas c, double level) {
-  c.drawOval(const Rect.fromLTRB(70, 140, 130, 222), Paint()..color = Colors.white.withValues(alpha: 0.38));
-  c.drawOval(const Rect.fromLTRB(74, 14, 86, 62), Paint()..color = _blush);
-  c.drawOval(const Rect.fromLTRB(114, 14, 126, 62), Paint()..color = _blush);
-  _eye(c, 82, 90, 7);
-  _eye(c, 118, 90, 7);
-  c.drawOval(const Rect.fromLTRB(64, 104, 80, 114), Paint()..color = _blush);
-  c.drawOval(const Rect.fromLTRB(120, 104, 136, 114), Paint()..color = _blush);
-  c.drawOval(const Rect.fromLTRB(95, 100, 105, 107), Paint()..color = C.coral);
-  _smile(c, const Offset(92, 110), const Offset(100, 118), const Offset(108, 110), w: 2.4);
-}
-
-// ---------------- Blob / drop ----------------
-Path _drop() => Path()
-  ..moveTo(100, 8)
-  ..cubicTo(130, 60, 176, 110, 176, 160)
-  ..cubicTo(176, 205, 142, 236, 100, 236)
-  ..cubicTo(58, 236, 24, 205, 24, 160)
-  ..cubicTo(24, 110, 70, 60, 100, 8)
-  ..close();
-
-void _dropFx(Canvas c, double level) {
-  c.drawOval(const Rect.fromLTRB(46, 120, 66, 170), Paint()..color = Colors.white.withValues(alpha: 0.45));
-  _eye(c, 80, 150, 8);
-  _eye(c, 120, 150, 8);
-  c.drawOval(const Rect.fromLTRB(60, 166, 78, 176), Paint()..color = _blush);
-  c.drawOval(const Rect.fromLTRB(122, 166, 140, 176), Paint()..color = _blush);
-  _smile(c, const Offset(90, 172), const Offset(100, 184), const Offset(110, 172));
-}
-
-final List<CharacterDef> kCharacters = [
-  CharacterDef('penguin', 'Pingu', false, _penguin, _penguinFx),
-  CharacterDef('drop', 'Bindu', false, _drop, _dropFx),
-  CharacterDef('whale', 'Neel', true, _whale, _whaleFx),
-  CharacterDef('cat', 'Billi', true, _cat, _catFx),
-  CharacterDef('bunny', 'Gogo', true, _bunny, _bunnyFx),
+const List<Friend> kCharacters = [
+  Friend('sparrow', '🐦', 'Chiku the Sparrow', 'चीकू गौरैया', 'चिकू चिमणी'),
+  Friend('cat', '🐈', 'Billu the Cat', 'बिल्लू बिल्ली', 'बिल्लू मांजर'),
+  Friend('squirrel', '🐿️', 'Gillu the Squirrel', 'गिल्लू गिलहरी', 'गिल्लू खार', unlockStreak: 3),
+  Friend('dog', '🐕', 'Moti the Dog', 'मोती कुत्ता', 'मोती कुत्रा', unlockStreak: 7),
+  Friend('cow', '🐄', 'Gauri the Cow', 'गौरी गाय', 'गौरी गाय', unlockStreak: 14),
+  Friend('goat', '🐐', 'Bholu the Goat', 'भोलू बकरी', 'भोलू शेळी', unlockStreak: 30),
+  Friend('parrot', '🦜', 'Mithu the Parrot', 'मिट्ठू तोता', 'मिठू पोपट', premium: true),
+  Friend('elephant', '🐘', 'Gajju the Elephant', 'गज्जू हाथी', 'गज्जू हत्ती', premium: true),
+  Friend('camel', '🐪', 'Raju the Camel', 'राजू ऊँट', 'राजू उंट', premium: true),
+  Friend('tiger', '🐅', 'Sheru the Tiger', 'शेरू बाघ', 'शेरू वाघ', premium: true),
+  Friend('peacock', '🦚', 'Mayur the Peacock', 'मयूर मोर', 'मयूर मोर', premium: true),
+  Friend('monkey', '🐒', 'Bandu the Monkey', 'बंदू बंदर', 'बंडू माकड', premium: true),
+  Friend('owl', '🦉', 'Ullu the Owl', 'उल्लू', 'घुबडू', premium: true),
+  Friend('turtle', '🐢', 'Kachhu the Turtle', 'कछुआ काका', 'कासव काका', premium: true),
+  Friend('rabbit', '🐇', 'Sonu the Rabbit', 'सोनू खरगोश', 'सोनू ससा', premium: true),
 ];
 
-CharacterDef characterById(String id) =>
+Friend characterById(String id) =>
     kCharacters.firstWhere((c) => c.id == id, orElse: () => kCharacters.first);
 
-/// Animated character that fills from the bottom with coloured beverage layers.
+bool friendUnlocked(Friend f) {
+  final s = AppState.instance;
+  if (s.premium) return true;
+  if (f.premium) return false;
+  return s.bestStreak >= f.unlockStreak;
+}
+
+// ---------------------------------------------------------------------------
+// Matka geometry (in a 200 x 240 box)
+// ---------------------------------------------------------------------------
+const _clay = Color(0xFFD96A3B);
+const _clayDark = Color(0xFFB4502A);
+const _clayMouth = Color(0xFF5A2412);
+
+Path matkaBody() => Path()
+  ..moveTo(78, 74)
+  ..cubicTo(76, 86, 72, 92, 62, 100)
+  ..cubicTo(28, 124, 20, 172, 44, 206)
+  ..cubicTo(60, 230, 82, 238, 100, 238)
+  ..cubicTo(118, 238, 140, 230, 156, 206)
+  ..cubicTo(180, 172, 172, 124, 138, 100)
+  ..cubicTo(128, 92, 124, 86, 122, 74)
+  ..close();
+
+void paintMatka(Canvas canvas, List<FillLayer> layers, double level, double phase,
+    {bool bubbles = true, double t = 0}) {
+  final body = matkaBody();
+  final b = body.getBounds();
+
+  // ground shadow
+  canvas.drawOval(const Rect.fromLTRB(46, 228, 154, 244), Paint()..color = const Color(0x22000000));
+  // clay body
+  canvas.drawPath(body, Paint()..color = _clay);
+
+  // water seen through the clay ("x-ray" window)
+  if (level > 0.001) {
+    canvas.save();
+    canvas.clipPath(body);
+    const top = 96.0; // usable water height starts below the neck
+    final h = b.bottom - top;
+    final total = layers.fold<double>(0, (s, l) => s + l.fraction);
+    final k = total > 0 ? level / total : 0.0;
+    double cum = 0;
+    final amp = level >= 0.999 ? 0.0 : 3.5;
+    for (var i = 0; i < layers.length; i++) {
+      final f = layers[i].fraction * k;
+      if (f <= 0) continue;
+      final y0 = b.bottom - cum * h;
+      final y1 = b.bottom - math.min(1.0, cum + f) * h;
+      final isTop = i == layers.length - 1 || cum + f >= level - 0.0001;
+      final p = Path()..moveTo(b.left - 4, y0 + 1);
+      if (isTop) {
+        for (double x = b.left - 4; x <= b.right + 4; x += 4) {
+          p.lineTo(x, y1 + math.sin((x / b.width) * 2 * math.pi * 1.3 + phase) * amp);
+        }
+      } else {
+        p
+          ..lineTo(b.left - 4, y1)
+          ..lineTo(b.right + 4, y1);
+      }
+      p
+        ..lineTo(b.right + 4, y0 + 1)
+        ..close();
+      canvas.drawPath(p, Paint()..color = layers[i].color.withValues(alpha: 0.92));
+      cum += f;
+    }
+    final yTop = b.bottom - level * h;
+    if (bubbles) {
+      final bubble = Paint()..color = Colors.white.withValues(alpha: 0.5);
+      for (var j = 0; j < 7; j++) {
+        final bt = (t * (1 + j % 3 * 0.35) + j * 0.137) % 1.0;
+        final bx = b.left + b.width * (0.22 + 0.56 * ((j * 0.37) % 1.0)) + math.sin(bt * 6 + j) * 4;
+        final by = b.bottom - bt * (b.bottom - yTop);
+        if (by < yTop + 4) continue;
+        canvas.drawCircle(Offset(bx, by), 1.8 + (j % 3), bubble);
+      }
+    }
+    canvas.restore();
+  }
+
+  // traditional painted bands
+  final band = Paint()
+    ..color = Colors.white.withValues(alpha: 0.85)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.4;
+  canvas.save();
+  canvas.clipPath(body);
+  canvas.drawArc(const Rect.fromLTRB(20, 96, 180, 140), 0.15, math.pi - 0.3, false, band);
+  canvas.drawArc(const Rect.fromLTRB(20, 104, 180, 148), 0.15, math.pi - 0.3, false, band);
+  // little triangles (warli style) along the band
+  final tri = Paint()..color = Colors.white.withValues(alpha: 0.85);
+  for (var i = 0; i < 9; i++) {
+    final x = 40.0 + i * 15;
+    final y = 150.0 - math.sin((x - 100) / 60) * 4;
+    canvas.drawPath(
+      Path()
+        ..moveTo(x - 4, y)
+        ..lineTo(x + 4, y)
+        ..lineTo(x, y + 7)
+        ..close(),
+      tri,
+    );
+  }
+  // soft highlight
+  canvas.drawOval(const Rect.fromLTRB(42, 118, 62, 190), Paint()..color = Colors.white.withValues(alpha: 0.16));
+  canvas.restore();
+
+  // rim + mouth
+  canvas.drawRRect(RRect.fromLTRBR(66, 60, 134, 78, const Radius.circular(9)), Paint()..color = _clayDark);
+  canvas.drawOval(const Rect.fromLTRB(74, 61, 126, 71), Paint()..color = _clayMouth);
+  if (level > 0.999) {
+    canvas.drawOval(const Rect.fromLTRB(78, 63, 122, 70), Paint()..color = C.accent);
+  }
+}
+
+void _emoji(Canvas c, String e, Offset center, double size, {bool flip = false}) {
+  final tp = TextPainter(
+    text: TextSpan(text: e, style: TextStyle(fontSize: size, height: 1)),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  c.save();
+  c.translate(center.dx, center.dy);
+  if (flip) c.scale(-1, 1);
+  tp.paint(c, Offset(-tp.width / 2, -tp.height / 2));
+  c.restore();
+}
+
+/// Home scene: the matka fills with your drinks, your buddy sits beside it
+/// and more animal friends come to visit as the matka fills up.
 class Mascot extends StatefulWidget {
-  final String characterId;
+  final String characterId; // the buddy
   final List<FillLayer> layers;
   final double height;
   final bool animateWave;
-  final int pokes; // change this number to make the character hop
+  final int pokes; // change to make everyone hop
 
   const Mascot({
     super.key,
@@ -232,12 +200,10 @@ class Mascot extends StatefulWidget {
 }
 
 class _MascotState extends State<Mascot> with TickerProviderStateMixin {
-  // continuous idle loop: waves, breathing, sway, bubbles, blink
   late final AnimationController _loop =
       AnimationController(vsync: this, duration: const Duration(seconds: 4));
-  // happy hop when a drink is added or the character is tapped
   late final AnimationController _hop =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 750));
 
   double _total(List<FillLayer> l) => l.fold<double>(0, (s, x) => s + x.fraction);
 
@@ -266,10 +232,19 @@ class _MascotState extends State<Mascot> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final target = _total(widget.layers).clamp(0.0, 1.0);
-    final def = characterById(widget.characterId);
+    final buddy = characterById(widget.characterId);
+    final visitors = kCharacters
+        .where((f) => f.id != buddy.id && friendUnlocked(f))
+        .take(4)
+        .map((f) => f.emoji)
+        .toList();
+    const fallback = ['🐦', '🐿️', '🦜', '🦚'];
+    while (visitors.length < 4) {
+      visitors.add(fallback[visitors.length]);
+    }
     return SizedBox(
       height: widget.height,
-      width: widget.height * 200 / 240,
+      width: widget.height * 220 / 240,
       child: TweenAnimationBuilder<double>(
         tween: Tween(end: target),
         duration: const Duration(milliseconds: 900),
@@ -277,8 +252,9 @@ class _MascotState extends State<Mascot> with TickerProviderStateMixin {
         builder: (context, level, _) => AnimatedBuilder(
           animation: Listenable.merge([_loop, _hop]),
           builder: (context, _) => CustomPaint(
-            painter: _MascotPainter(
-              def,
+            painter: _ScenePainter(
+              buddy.emoji,
+              visitors,
               widget.layers,
               level,
               _loop.value,
@@ -292,110 +268,77 @@ class _MascotState extends State<Mascot> with TickerProviderStateMixin {
   }
 }
 
-class _MascotPainter extends CustomPainter {
-  final CharacterDef def;
+class _ScenePainter extends CustomPainter {
+  final String buddy;
+  final List<String> visitors;
   final List<FillLayer> layers;
   final double level;
-  final double t; // 0..1 idle loop
-  final double hop; // 0..1 hop progress
+  final double t;
+  final double hop;
   final bool alive;
-  _MascotPainter(this.def, this.layers, this.level, this.t, this.hop, this.alive);
+  _ScenePainter(this.buddy, this.visitors, this.layers, this.level, this.t, this.hop, this.alive);
 
   @override
   void paint(Canvas canvas, Size size) {
     final phase = t * 2 * math.pi;
-    final scale = math.min(size.width / 200, size.height / 240) * 0.94;
+    final scale = math.min(size.width / 220, size.height / 240);
     canvas.save();
-    canvas.translate((size.width - 200 * scale) / 2, (size.height - 240 * scale) / 2);
+    canvas.translate((size.width - 220 * scale) / 2, (size.height - 240 * scale) / 2);
     canvas.scale(scale);
+    canvas.translate(10, 0);
 
+    final hopping = hop > 0 && hop < 1;
+    final jump = hopping ? math.sin(hop * math.pi) : 0.0;
+
+    canvas.save();
     if (alive) {
-      // hop: jump up with squash & stretch
-      final jump = hop > 0 && hop < 1 ? math.sin(hop * math.pi) : 0.0;
-      final squash = hop > 0 && hop < 1 ? math.sin(hop * math.pi * 2) * 0.06 : 0.0;
-      // idle: gentle breathing + side-to-side waddle
-      final breathe = math.sin(phase * 2) * 0.018;
-      final sway = math.sin(phase) * 0.045 + (hop > 0 && hop < 1 ? math.sin(hop * math.pi * 3) * 0.08 : 0);
-      canvas.translate(100, 240);
-      canvas.rotate(sway);
-      canvas.translate(0, -jump * 26);
-      canvas.scale(1 - breathe * 0.5 + squash, 1 + breathe - squash);
-      canvas.translate(-100, -240);
+      final wob = hopping ? math.sin(hop * math.pi * 4) * 0.035 * (1 - hop) : 0.0;
+      canvas.translate(100, 238);
+      canvas.rotate(wob);
+      canvas.translate(-100, -238);
     }
+    paintMatka(canvas, layers, level, phase, bubbles: alive, t: t);
+    canvas.restore();
 
-    final sil = def.silhouette();
-    final b = sil.getBounds();
-    canvas.drawPath(sil, Paint()..color = C.empty);
-
-    if (level > 0.001) {
-      canvas.save();
-      canvas.clipPath(sil);
-      final total = layers.fold<double>(0, (s, l) => s + l.fraction);
-      final scaleL = total > 0 ? level / total.clamp(0.0001, 1000.0) : 0.0;
-      double cum = 0;
-      final h = b.height;
-      final amp = level >= 0.999 ? 0.0 : 4.5;
-      for (var i = 0; i < layers.length; i++) {
-        final l = layers[i];
-        final f = l.fraction * (scaleL.isFinite ? scaleL : 0);
-        if (f <= 0) continue;
-        final y0 = b.bottom - cum * h;
-        final y1 = b.bottom - math.min(1.0, cum + f) * h;
-        final isTop = i == layers.length - 1 || cum + f >= level - 0.0001;
-        final p = Path()..moveTo(b.left - 4, y0 + 1);
-        if (isTop) {
-          for (double x = b.left - 4; x <= b.right + 4; x += 4) {
-            final y = y1 + math.sin((x / b.width) * 2 * math.pi * 1.3 + phase) * amp;
-            p.lineTo(x, y);
-          }
-        } else {
-          p.lineTo(b.left - 4, y1);
-          p.lineTo(b.right + 4, y1);
-        }
-        p
-          ..lineTo(b.right + 4, y0 + 1)
-          ..close();
-        canvas.drawPath(p, Paint()..color = l.color);
-        cum += f;
-      }
-      final yTop = b.bottom - level * h;
-      if (level < 0.999) {
-        final back = Path()..moveTo(b.left - 4, yTop + 10);
-        for (double x = b.left - 4; x <= b.right + 4; x += 4) {
-          back.lineTo(x, yTop + math.sin((x / b.width) * 2 * math.pi * 1.1 - phase + 1.4) * 5);
-        }
-        back
-          ..lineTo(b.right + 4, yTop + 10)
-          ..close();
-        canvas.drawPath(back, Paint()..color = Colors.white.withValues(alpha: 0.22));
-      }
-      // rising bubbles inside the liquid
-      if (alive) {
-        final bubble = Paint()..color = Colors.white.withValues(alpha: 0.45);
-        for (var k = 0; k < 7; k++) {
-          final bt = (t * (1 + k % 3 * 0.35) + k * 0.137) % 1.0;
-          final bx = b.left + b.width * (0.2 + 0.6 * ((k * 0.37) % 1.0)) + math.sin(bt * 6 + k) * 4;
-          final by = b.bottom - bt * (b.bottom - yTop);
-          if (by < yTop + 4) continue;
-          canvas.drawCircle(Offset(bx, by), 2 + (k % 3), bubble);
-        }
-      }
+    if (!alive) {
+      _emoji(canvas, buddy, const Offset(180, 206), 40);
       canvas.restore();
+      return;
     }
 
-    // blink roughly once per loop
-    _blink = alive && (t > 0.46 && t < 0.5) ? 1 : 0;
-    def.features(canvas, level);
-    _blink = 0;
+    double bob(double off, [double amp = 3]) => math.sin(phase * 2 + off) * amp;
+
+    if (level >= 0.25) {
+      _emoji(canvas, visitors[0], Offset(118, 46 + bob(0.5) - jump * 14), 26, flip: true);
+    }
+    if (level >= 0.5) {
+      _emoji(canvas, visitors[1], Offset(14, 214 + bob(1.7) - jump * 10), 30);
+    }
+    if (level >= 0.75) {
+      final a = phase;
+      _emoji(canvas, visitors[2], Offset(100 + math.cos(a) * 70, 40 + math.sin(a * 2) * 10), 24,
+          flip: math.sin(a) > 0);
+    }
+    if (level >= 0.999) {
+      _emoji(canvas, visitors[3], Offset(30, 140 + bob(2.4, 4) - jump * 16), 34);
+      final sp = Paint()..color = C.accent;
+      for (var i = 0; i < 6; i++) {
+        final a = i * math.pi / 3 + phase;
+        final r = 108 + math.sin(phase * 2 + i) * 6;
+        canvas.drawCircle(Offset(100 + math.cos(a) * r * 0.75, 150 + math.sin(a) * r * 0.65), 2.5, sp);
+      }
+    }
+    _emoji(canvas, buddy, Offset(180, 206 + bob(0) - jump * 22), 44);
+
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _MascotPainter old) =>
-      old.level != level || old.t != t || old.hop != hop || old.def != def || old.layers != layers;
+  bool shouldRepaint(covariant _ScenePainter old) =>
+      old.level != level || old.t != t || old.hop != hop || old.buddy != buddy || old.layers != layers;
 }
 
-/// Small static preview used in pickers.
+/// Small static matka (used in onboarding cards & history).
 class MascotThumb extends StatelessWidget {
   final String characterId;
   final double size;
@@ -409,4 +352,63 @@ class MascotThumb extends StatelessWidget {
         height: size,
         animateWave: false,
       );
+}
+
+/// Round badge showing a friend's emoji (used in pickers).
+class FriendBadge extends StatelessWidget {
+  final Friend friend;
+  final double size;
+  final bool locked;
+  const FriendBadge({super.key, required this.friend, this.size = 64, this.locked = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(color: C.accentSoft, shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Opacity(
+        opacity: locked ? 0.35 : 1,
+        child: Text(friend.emoji, style: TextStyle(fontSize: size * 0.55, height: 1)),
+      ),
+    );
+  }
+}
+
+/// App logo: a little matka on a black tile + wordmark.
+class AppLogo extends StatelessWidget {
+  final double size;
+  final bool wordmark;
+  const AppLogo({super.key, this.size = 44, this.wordmark = true});
+
+  @override
+  Widget build(BuildContext context) {
+    final mark = SizedBox(width: size, height: size, child: CustomPaint(painter: _LogoPainter()));
+    if (!wordmark) return mark;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      mark,
+      SizedBox(width: size * 0.25),
+      Text('Jal Mitra',
+          style: TextStyle(
+              fontSize: size * 0.72, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: C.ink)),
+    ]);
+  }
+}
+
+class _LogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(size.width * 0.28));
+    canvas.drawRRect(r, Paint()..color = C.ink);
+    final s = size.width / 240 * 0.86;
+    canvas.save();
+    canvas.translate(size.width / 2 - 100 * s, size.height / 2 - 150 * s);
+    canvas.scale(s);
+    paintMatka(canvas, const [FillLayer(C.accent, 0.55)], 0.55, 0, bubbles: false);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

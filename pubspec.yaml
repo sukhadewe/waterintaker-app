@@ -1,5 +1,5 @@
 name: waterintaker
-description: "Waddle - water intake tracker with a penguin that fills up as you drink."
+description: "Jal Mitra - fill your desi matka, animal friends come to drink."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -26,7 +26,7 @@ flutter_launcher_icons:
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/icon.png"
-  adaptive_icon_background: "#0EC5E8"
+  adaptive_icon_background: "#0B0D12"
   adaptive_icon_foreground: "assets/icon/icon_fg.png"
   min_sdk_android: 24
 

@@ -10,7 +10,7 @@ import os
 import re
 
 APP_ID = "com.sukhadewe.waterintaker"
-APP_LABEL = "Waddle"
+APP_LABEL = "Jal Mitra"
 # AdMob App IDs - TEST ids. Replace with your real AdMob app ids before release.
 ADMOB_ANDROID_APP_ID = os.environ.get("ADMOB_ANDROID_APP_ID") or "ca-app-pub-3940256099942544~3347511713"
 ADMOB_IOS_APP_ID = os.environ.get("ADMOB_IOS_APP_ID") or "ca-app-pub-3940256099942544~1458002511"

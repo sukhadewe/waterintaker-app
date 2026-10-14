@@ -89,21 +89,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       child: Column(
         children: [
           const SizedBox(height: 36),
-          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(color: C.accent, borderRadius: BorderRadius.circular(13)),
-              child: const Icon(Icons.water_drop_rounded, color: Colors.white, size: 26),
-            ),
-            const SizedBox(width: 10),
-            const Text('Waddle',
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: C.ink)),
-          ]),
+          const AppLogo(size: 46),
           const SizedBox(height: 10),
           Text(tr('tagline'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: C.inkSoft)),
           const Spacer(),
-          Mascot(characterId: 'penguin', layers: layers, height: 330),
+          Mascot(characterId: 'sparrow', layers: layers, height: 330),
           const Spacer(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -156,7 +146,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         child: Column(
           children: [
             const Spacer(),
-            const MascotThumb(characterId: 'penguin', size: 220, fill: 0.15),
+            const MascotThumb(characterId: 'sparrow', size: 220, fill: 0.15),
             const Spacer(),
             Text(tr('choose_units'),
                 textAlign: TextAlign.center,
@@ -205,7 +195,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             Text(s.fmt(amount),
                 style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: C.accent)),
           Mascot(
-            characterId: 'penguin',
+            characterId: 'sparrow',
             layers: [if (sipped) FillLayer(C.accent, amount / s.goalMl)],
             height: 320,
           ),
@@ -286,7 +276,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                   ]),
                 ),
                 const SizedBox(height: 10),
-                const MascotThumb(characterId: 'penguin', size: 190, fill: 0.55),
+                const MascotThumb(characterId: 'sparrow', size: 190, fill: 0.55),
               ]),
             ),
             const Spacer(),
@@ -344,7 +334,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     item('dh2', false),
                     item('dh3', false),
                     const Spacer(),
-                    const Center(child: MascotThumb(characterId: 'penguin', size: 110, fill: 0.08)),
+                    const Center(child: MascotThumb(characterId: 'sparrow', size: 110, fill: 0.08)),
                   ]),
                 ),
               ),
@@ -365,7 +355,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                       child: Container(
                         decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                         padding: const EdgeInsets.all(8),
-                        child: const MascotThumb(characterId: 'penguin', size: 110, fill: 1),
+                        child: const MascotThumb(characterId: 'sparrow', size: 110, fill: 1),
                       ),
                     ),
                   ]),

@@ -78,12 +78,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
             child: ListView(padding: const EdgeInsets.symmetric(horizontal: 24), children: [
               SizedBox(
                 height: 170,
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  for (final c in kCharacters.where((c) => c.premium))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: MascotThumb(characterId: c.id, size: 120, fill: 0.7),
-                    ),
+                child: Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
+                  for (final c in kCharacters.where((c) => c.premium)) FriendBadge(friend: c, size: 52),
                 ]),
               ),
               const SizedBox(height: 8),

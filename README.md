@@ -1,6 +1,6 @@
-# Waddle – Water Intake Tracker (Flutter)
+# Jal Mitra – Water Intake Tracker (Flutter)
 
-Penguin fills up as you drink. Android first, iOS from the same code.
+A desi matka fills up as you drink and animal friends come to visit. Android first, iOS from the same code.
 
 - `lib/` – all app code (onboarding, goal calculator, home, beverages, history, reminders, settings, premium, AdMob)
 - `tool/patch_platforms.py` – configures the android/ios folders that CI generates

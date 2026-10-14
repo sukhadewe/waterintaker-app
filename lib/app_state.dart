@@ -24,7 +24,7 @@ class AppState extends ChangeNotifier {
   Activity activity = Activity.medium;
   Climate climate = Climate.hot;
   int? customGoalMl;
-  String character = 'penguin';
+  String character = 'sparrow';
   bool soundsOn = true;
   bool premium = false;
   List<String> quickBar = List.of(kDefaultQuickBar);
@@ -75,7 +75,7 @@ class AppState extends ChangeNotifier {
     activity = Activity.values[(j['activity'] as int? ?? 1).clamp(0, Activity.values.length - 1)];
     climate = Climate.values[(j['climate'] as int? ?? 2).clamp(0, Climate.values.length - 1)];
     customGoalMl = j['customGoalMl'] as int?;
-    character = j['character'] as String? ?? 'penguin';
+    character = j['character'] as String? ?? 'sparrow';
     soundsOn = j['soundsOn'] as bool? ?? true;
     premium = j['premium'] as bool? ?? false;
     final qb = j['quickBar'];
