@@ -88,10 +88,20 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     return SafeArea(
       child: Column(
         children: [
-          const SizedBox(height: 40),
-          const Icon(Icons.water_drop_rounded, color: C.accent, size: 44),
-          const SizedBox(height: 8),
-          Text(tr('tagline'), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 36),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(color: C.accent, borderRadius: BorderRadius.circular(13)),
+              child: const Icon(Icons.water_drop_rounded, color: Colors.white, size: 26),
+            ),
+            const SizedBox(width: 10),
+            const Text('Waddle',
+                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: -0.5, color: C.ink)),
+          ]),
+          const SizedBox(height: 10),
+          Text(tr('tagline'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: C.inkSoft)),
           const Spacer(),
           Mascot(characterId: 'penguin', layers: layers, height: 330),
           const Spacer(),
