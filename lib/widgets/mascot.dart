@@ -27,9 +27,9 @@ Path _oval(double l, double t, double r, double b) => Path()..addOval(Rect.fromL
 
 Path _rotOval(double cx, double cy, double w, double h, double angle) {
   final m = Matrix4.identity()
-    ..translate(cx, cy)
+    ..translateByDouble(cx, cy, 0, 1)
     ..rotateZ(angle)
-    ..translate(-cx, -cy);
+    ..translateByDouble(-cx, -cy, 0, 1);
   return _oval(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2).transform(m.storage);
 }
 
