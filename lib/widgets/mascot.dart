@@ -41,7 +41,14 @@ Path _union(List<Path> parts) {
   return p;
 }
 
+/// 0 = eyes open, 1 = fully closed. Set by the painter before drawing features.
+double _blink = 0;
+
 void _eye(Canvas c, double x, double y, double r) {
+  if (_blink > 0.5) {
+    _smile(c, Offset(x - r, y), Offset(x, y + r * 0.7), Offset(x + r, y), w: r * 0.45);
+    return;
+  }
   c.drawCircle(Offset(x, y), r, Paint()..color = _ink);
   c.drawCircle(Offset(x + r * 0.35, y - r * 0.35), r * 0.38, Paint()..color = Colors.white);
 }
@@ -209,6 +216,7 @@ class Mascot extends StatefulWidget {
   final List<FillLayer> layers;
   final double height;
   final bool animateWave;
+  final int pokes; // change this number to make the character hop
 
   const Mascot({
     super.key,
@@ -216,31 +224,48 @@ class Mascot extends StatefulWidget {
     required this.layers,
     this.height = 300,
     this.animateWave = true,
+    this.pokes = 0,
   });
 
   @override
   State<Mascot> createState() => _MascotState();
 }
 
-class _MascotState extends State<Mascot> with SingleTickerProviderStateMixin {
-  late final AnimationController _wave =
-      AnimationController(vsync: this, duration: const Duration(seconds: 3));
+class _MascotState extends State<Mascot> with TickerProviderStateMixin {
+  // continuous idle loop: waves, breathing, sway, bubbles, blink
+  late final AnimationController _loop =
+      AnimationController(vsync: this, duration: const Duration(seconds: 4));
+  // happy hop when a drink is added or the character is tapped
+  late final AnimationController _hop =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+
+  double _total(List<FillLayer> l) => l.fold<double>(0, (s, x) => s + x.fraction);
 
   @override
   void initState() {
     super.initState();
-    if (widget.animateWave) _wave.repeat();
+    if (widget.animateWave) _loop.repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant Mascot old) {
+    super.didUpdateWidget(old);
+    if (widget.animateWave &&
+        (_total(widget.layers) > _total(old.layers) + 0.0001 || widget.pokes != old.pokes)) {
+      _hop.forward(from: 0);
+    }
   }
 
   @override
   void dispose() {
-    _wave.dispose();
+    _loop.dispose();
+    _hop.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final target = widget.layers.fold<double>(0, (s, l) => s + l.fraction).clamp(0.0, 1.0);
+    final target = _total(widget.layers).clamp(0.0, 1.0);
     final def = characterById(widget.characterId);
     return SizedBox(
       height: widget.height,
@@ -250,9 +275,16 @@ class _MascotState extends State<Mascot> with SingleTickerProviderStateMixin {
         duration: const Duration(milliseconds: 900),
         curve: Curves.easeOutCubic,
         builder: (context, level, _) => AnimatedBuilder(
-          animation: _wave,
+          animation: Listenable.merge([_loop, _hop]),
           builder: (context, _) => CustomPaint(
-            painter: _MascotPainter(def, widget.layers, level, _wave.value * 2 * math.pi),
+            painter: _MascotPainter(
+              def,
+              widget.layers,
+              level,
+              _loop.value,
+              widget.animateWave ? _hop.value : 0,
+              widget.animateWave,
+            ),
           ),
         ),
       ),
@@ -264,15 +296,32 @@ class _MascotPainter extends CustomPainter {
   final CharacterDef def;
   final List<FillLayer> layers;
   final double level;
-  final double phase;
-  _MascotPainter(this.def, this.layers, this.level, this.phase);
+  final double t; // 0..1 idle loop
+  final double hop; // 0..1 hop progress
+  final bool alive;
+  _MascotPainter(this.def, this.layers, this.level, this.t, this.hop, this.alive);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scale = math.min(size.width / 200, size.height / 240);
+    final phase = t * 2 * math.pi;
+    final scale = math.min(size.width / 200, size.height / 240) * 0.94;
     canvas.save();
     canvas.translate((size.width - 200 * scale) / 2, (size.height - 240 * scale) / 2);
     canvas.scale(scale);
+
+    if (alive) {
+      // hop: jump up with squash & stretch
+      final jump = hop > 0 && hop < 1 ? math.sin(hop * math.pi) : 0.0;
+      final squash = hop > 0 && hop < 1 ? math.sin(hop * math.pi * 2) * 0.06 : 0.0;
+      // idle: gentle breathing + side-to-side waddle
+      final breathe = math.sin(phase * 2) * 0.018;
+      final sway = math.sin(phase) * 0.045 + (hop > 0 && hop < 1 ? math.sin(hop * math.pi * 3) * 0.08 : 0);
+      canvas.translate(100, 240);
+      canvas.rotate(sway);
+      canvas.translate(0, -jump * 26);
+      canvas.scale(1 - breathe * 0.5 + squash, 1 + breathe - squash);
+      canvas.translate(-100, -240);
+    }
 
     final sil = def.silhouette();
     final b = sil.getBounds();
@@ -290,8 +339,8 @@ class _MascotPainter extends CustomPainter {
         final l = layers[i];
         final f = l.fraction * (scaleL.isFinite ? scaleL : 0);
         if (f <= 0) continue;
-        final y0 = b.bottom - cum * h; // bottom of band
-        final y1 = b.bottom - math.min(1.0, cum + f) * h; // top of band
+        final y0 = b.bottom - cum * h;
+        final y1 = b.bottom - math.min(1.0, cum + f) * h;
         final isTop = i == layers.length - 1 || cum + f >= level - 0.0001;
         final p = Path()..moveTo(b.left - 4, y0 + 1);
         if (isTop) {
@@ -309,9 +358,8 @@ class _MascotPainter extends CustomPainter {
         canvas.drawPath(p, Paint()..color = l.color);
         cum += f;
       }
-      // light back-wave for depth
+      final yTop = b.bottom - level * h;
       if (level < 0.999) {
-        final yTop = b.bottom - level * h;
         final back = Path()..moveTo(b.left - 4, yTop + 10);
         for (double x = b.left - 4; x <= b.right + 4; x += 4) {
           back.lineTo(x, yTop + math.sin((x / b.width) * 2 * math.pi * 1.1 - phase + 1.4) * 5);
@@ -321,16 +369,30 @@ class _MascotPainter extends CustomPainter {
           ..close();
         canvas.drawPath(back, Paint()..color = Colors.white.withValues(alpha: 0.22));
       }
+      // rising bubbles inside the liquid
+      if (alive) {
+        final bubble = Paint()..color = Colors.white.withValues(alpha: 0.45);
+        for (var k = 0; k < 7; k++) {
+          final bt = (t * (1 + k % 3 * 0.35) + k * 0.137) % 1.0;
+          final bx = b.left + b.width * (0.2 + 0.6 * ((k * 0.37) % 1.0)) + math.sin(bt * 6 + k) * 4;
+          final by = b.bottom - bt * (b.bottom - yTop);
+          if (by < yTop + 4) continue;
+          canvas.drawCircle(Offset(bx, by), 2 + (k % 3), bubble);
+        }
+      }
       canvas.restore();
     }
 
+    // blink roughly once per loop
+    _blink = alive && (t > 0.46 && t < 0.5) ? 1 : 0;
     def.features(canvas, level);
+    _blink = 0;
     canvas.restore();
   }
 
   @override
   bool shouldRepaint(covariant _MascotPainter old) =>
-      old.level != level || old.phase != phase || old.def != def || old.layers != layers;
+      old.level != level || old.t != t || old.hop != hop || old.def != def || old.layers != layers;
 }
 
 /// Small static preview used in pickers.

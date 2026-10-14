@@ -48,6 +48,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool _showRemaining = false;
+  int _pokes = 0;
   bool _confetti = false;
 
   @override
@@ -150,7 +151,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     return GestureDetector(
                       onTap: () {
                         HapticFeedback.selectionClick();
-                        setState(() => _showRemaining = !_showRemaining);
+                        setState(() {
+                          _showRemaining = !_showRemaining;
+                          _pokes++;
+                        });
                       },
                       child: Center(
                         child: Stack(alignment: Alignment.center, children: [
@@ -158,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             characterId: s.character,
                             layers: layersForDay(s, now),
                             height: h,
+                            pokes: _pokes,
                           ),
                           AnimatedOpacity(
                             opacity: _showRemaining ? 1 : 0,
