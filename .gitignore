@@ -9,3 +9,12 @@ build/
 android/key.properties
 *.jks
 *.keystore
+
+# Private signing credentials must never be committed
+/signing/
+**/key.properties
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
